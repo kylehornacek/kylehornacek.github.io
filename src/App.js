@@ -3,66 +3,77 @@ import './App.css';
 import Confetti from 'react-confetti';
 import useWindowSize from 'react-use/lib/useWindowSize';
 
+import Image1 from './IMG_2532.JPG';
+import Image2 from './IMG_2582.JPG';
+import Image3 from './IMG_2614.JPG';
+import Image4 from './IMG_2629.JPG';
+import Image5 from './IMG_9516.jpg';
+
 function App() {
   const [showBirthdayAnimation, setShowBirthdayAnimation] = useState(true);
   const [confettiFinished, setConfettiFinished] = useState(false);
   const [sentenceIndex, setSentenceIndex] = useState(0);
+  const [showText, setShowText] = useState(true); // State to control text visibility
+  const [imagesDisplayed, setImagesDisplayed] = useState(false); // State to track if images have been displayed
+  const [showFinalMessage, setshowFinalMessage] = useState(false); // State to control text visibility
   const [sentences, setSentences] = useState([
     "Happy Birthday Natalia!",
-    "I really appreciate you being in my life!",
+    "I really appreciate spending the last couple months with you!",
     "23 is going to be the best year yet!",
-    "Here's something to reflect on the last couple months!"
+    "Here's a couple photos of us so far :)"
   ]);
-  const [showSecondTitle, setShowSecondTitle] = useState(false);
-  const [images, setImages] = useState([]);
 
+  const finalMessage = "I hope you have the best birthday ever! I know its only been a couple of months but I feel like I've known you for so much longer than that. We've definitely gone through a lot together, and even though its been tough, I think its brought us closer together! You're so beautiful inside and out and I can't wait to spend even more time with you! Happy Birthday and can't wait for our vacation in Arizona!"
+
+  // Confetti animation
   useEffect(() => {
     const confettiTimer = setTimeout(() => {
-      setShowBirthdayAnimation(false); // Turn off confetti after 15 seconds
-      setConfettiFinished(true); // Mark confetti animation as finished
-    }, 25000); // 15 seconds in milliseconds
+      setShowBirthdayAnimation(false);
+      setConfettiFinished(true);
+    }, 15000); // 15 seconds
 
-    return () => clearTimeout(confettiTimer); // Clean up timer on component unmount
+    return () => clearTimeout(confettiTimer);
   }, []);
 
+  // Sentence animation
   useEffect(() => {
     if (showBirthdayAnimation) {
       const sentenceTimer = setInterval(() => {
-        setSentenceIndex(prevIndex => {
-          const nextIndex = prevIndex + 1;
-          if (nextIndex < sentences.length) {
-            return nextIndex;
-          } else {
-            clearInterval(sentenceTimer); // Stop the timer when all sentences are displayed
-            return prevIndex;
-          }
-        });
-      }, 5000); // Display next sentence every 5 seconds during confetti animation
+        setSentenceIndex(prevIndex => (prevIndex + 1) % sentences.length);
+      }, 5000); // 5 seconds
 
-      return () => clearInterval(sentenceTimer); // Clean up timer on component unmount
+      return () => clearInterval(sentenceTimer);
     }
-  }, [showBirthdayAnimation, sentences]);
-
-  useEffect(() => {
-    if (confettiFinished) {
-      setShowSecondTitle(true);
-      displayImages(); // Display images after confetti animation
-    }
-  }, [confettiFinished]);
-
-  const displayImages = () => {
-    // Placeholder image URLs
-    const imageUrls = [
-      'https://via.placeholder.com/150/0000FF',
-      'https://via.placeholder.com/150/00FF00',
-      'https://via.placeholder.com/150/FF0000',
-      'https://via.placeholder.com/150/FFFF00',
-      'https://via.placeholder.com/150/FF00FF',
-    ];
-    setImages(imageUrls);
-  };
+  }, [showBirthdayAnimation, sentences.length]);
 
   const { width, height } = useWindowSize();
+
+  var imgs = [Image1, Image2, Image3, Image4, Image5];
+
+  const natimgs = imgs.map(image => (
+    <img src={image} height={400} width={300} />
+  ));
+
+  useEffect(() => {
+    if (confettiFinished && sentenceIndex === sentences.length - 1) {
+      setImagesDisplayed(true); // Mark images as displayed
+    }
+  }, [confettiFinished, sentenceIndex, sentences.length]);
+
+  useEffect(() => {
+    const imagetimeout = setTimeout(() => {
+    if (imagesDisplayed && sentenceIndex === sentences.length - 1) {
+      setShowText(false); // Hide text after images are displayed
+      setImagesDisplayed(false); // Mark images as displayed
+    }}, 10000)
+    return () => clearTimeout(imagetimeout);
+  }, [imagesDisplayed, sentenceIndex, sentences.length]);
+
+  useEffect(() => {
+    if (!imagesDisplayed && !showText) {
+      setshowFinalMessage(true); // Mark images as displayed
+    }
+  }, [imagesDisplayed, showText]);  
 
   return (
     <div className="container">
@@ -72,26 +83,15 @@ function App() {
           height={height}
         />
       )}
-      <div className={`page ${showBirthdayAnimation ? 'active' : ''}`}>
-        <h1>{sentences[sentenceIndex]}</h1>
-        {confettiFinished && sentenceIndex === sentences.length - 1 && (
-          <p>{sentences[sentenceIndex]}</p>
-        )}
+      <div className={`page ${showText ? 'active' : ''}`}>
+        {showText && <h1>{sentences[sentenceIndex]}</h1>}
+        {imagesDisplayed && sentenceIndex === sentences.length - 1 && natimgs}
       </div>
-      {showSecondTitle && (
-        <div className="page">
-          <h1>Second Title</h1>
-          {images.map((imageUrl, idx) => (
-            <img
-              key={idx}
-              src={imageUrl}
-              alt={`Image ${idx + 1}`}
-              style={{ width: '100px', height: '100px', margin: '5px', objectFit: 'cover' }}
-            />
-          ))}
-        </div>
-      )}
+      <div className={`page ${showFinalMessage ? 'finalMessage' : ''}`}>
+        {showFinalMessage && finalMessage}
+      </div>
     </div>
+    
   );
 }
 
